@@ -1,0 +1,1 @@
+https://github.com/cheaderthecoder/5-Letter-words/blob/main/words.json
