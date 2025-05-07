@@ -129,12 +129,12 @@
         return words[Math.floor(Math.random() * words.length)];
       },
       it: async () => {
-        const words = ["PESCA", "AMICO", "FESTA", "CUORE", "LENTO"];
+        const words = italianWords();
         allowedWords = words;
         return words[Math.floor(Math.random() * words.length)];
       },
       el: async () => {
-        const words = ["KALOS", "FILOS", "ZOEIS", "MOURO", "XRISI"];
+        const words = greekWords();
         allowedWords = words;
         return words[Math.floor(Math.random() * words.length)];
       }
@@ -143,6 +143,7 @@
     async function loadNewWord() {
       const lang = languageSelect.value;
       solution = await wordLists[lang]();
+      console.log(`Solution: ${solution}`)
       resetBoard();
       currentRow = 0;
       currentCol = 0;
@@ -276,6 +277,63 @@
       await loadNewWord();
       focusInput();
     };
+
+    function italianWords() {
+      return [
+        "ABILE", "ACIDO", "ACQUE", "ADITO", "AEREO", "AFFAR", "AGILE", "AIUTO", "ALBUM", "ALIBI",
+        "AMICO", "AMORE", "ANGELO", "ANIMA", "APICE", "ARENA", "ARTEI", "AVERE", "AVVIO", "AZZUR",
+        "BACIO", "BANCA", "BANDA", "BARCA", "BASES", "BEATO", "BELLO", "BIMBI", "BIOND", "BORSA",
+        "BRAVO", "BREVE", "BUONO", "CADDE", "CALMO", "CAMPO", "CANTO", "CARNE", "CARTA", "CASCO",
+        "CAUSA", "CEDRO", "CELLA", "CENNO", "CERTO", "CICLO", "CIELO", "CITTA", "CLASSE", "CLIMA",
+        "COLPO", "COMUN", "CORDA", "CORPO", "COSTO", "CRISI", "CUORE", "CURVO", "DANZA", "DEBITO",
+        "DEGLI", "DELTA", "DENTE", "DIETA", "DIFET", "DITTA", "DOGLI", "DONNA", "DOPPI", "DUBBI",
+        "DURAI", "ELEGG", "EMAIL", "ENTRA", "ERANO", "ERBAI", "ESAME", "ESITO", "ETICA", "EVENTO",
+        "FACCE", "FATTO", "FEBBR", "FELPA", "FERMA", "FERRO", "FESTA", "FIAMM", "FIBRA", "FIDAR",
+        "FIGLI", "FINEI", "FINTA", "FLORA", "FOLLA", "FONDO", "FORTE", "FOSSA", "FOTOI", "FUGGI",
+        "FUMAI", "FURBI", "GATTO", "GENIO", "GENTE", "GIARD", "GIOCO", "GIROA", "GLASS", "GOMMA",
+        "GRANA", "GRIDO", "GRUPP", "GUARD", "GUIDA", "IDEAL", "IDRAI", "IGIEN", "ILLUS", "IMPAR",
+        "IMPORT", "INCUB", "INIZI", "INSEG", "INTER", "INVIA", "ISOLA", "ITALO", "LARGO", "LASCI",
+        "LAVOR", "LEGGE", "LIBRO", "LINEA", "LISTA", "LUMIN", "LUNGO", "MADRI", "MAGGI", "MAGRO",
+        "MAIOR", "MALEI", "MANCA", "MANIA", "MARCO", "MASCH", "MEGLI", "MENTE", "MERCE", "MERLO",
+        "MEZZO", "MILIT", "MILLE", "MINUT", "MONDO", "MORTE", "MOTIV", "MUOVI", "NEANC", "NEVEI",
+        "NERVI", "NOMEA", "NORMA", "NOTTE", "NUOVA", "OASIY", "OBBLI", "OGGET", "OGNUN", "OLIVO",
+        "OMEGA", "ONORI", "OPERE", "ORARI", "ORDINE", "ORGAN", "OROLO", "OSCUA", "OSPED", "OSTAC",
+        "OTTOB", "PAGHI", "PALMA", "PANIC", "PARLA", "PARTI", "PASSE", "PATER", "PAURA", "PAVON",
+        "PENSO", "PERDE", "PERLA", "PESCA", "PIANO", "PIEDI", "PIENO", "PIOGG", "PIUMA", "PLACE",
+        "PIUME", "PIZZA", "PLAST", "POCHE", "POMPA", "PONTE", "PORTE", "POSTI", "POTRE", "PRIMA",
+        "PROVA", "PSICO", "PULIZ", "PUNTO", "QUEST", "RAGAZ", "RAMPA", "REAZI", "RESTA", "RISSA",
+        "RITOR", "ROBAI", "ROTON", "RUMOR", "SALTA", "SALVA", "SAPER", "SCALA", "SCAVA", "SCENE",
+        "SCOLA", "SCUSA", "SEGNO", "SELVA", "SENZA", "SERVI", "SETTE", "SFIDA", "SIGLA", "SIGMA",
+        "SINON", "SOGNO", "SOLDI", "SOLLE", "SONNO", "SORGE", "SPAZI", "SPINA", "SPORT", "STARE",
+        "STIMA", "STORI", "STRAD", "STUDI", "SUELO", "SUPER", "SVAGO", "TACCO", "TAGLI", "TANTO",
+        "TASTO", "TEMPO", "TENDE", "TERRE", "TESSU", "TIGRI", "TIPIC", "TITOL", "TOGLI", "TONNO",
+        "TOPPA", "TORNA", "TRAMA", "TRENO", "TRIST", "TROVA", "TUTTI", "UNICA", "URGEN", "USCIR",
+        "UTILE", "VACAN", "VALIG", "VALOR", "VALUT", "VASCA", "VELOC", "VENIR", "VENTO", "VERDE",
+        "VERIT", "VERSO", "VESTE", "VIALE", "VIDEO", "VISTA", "VIVID", "VIVRA", "VOGLI", "VOLER",
+        "VOTAI", "ZAMPE", "ZEBRA", "ZAINO"
+      ];
+    }
+  
+    function greekWords() {
+      return [
+        "ΑΓΆΠΗ", "ΒΆΡΟς", "ΓΈΛΙΟ", "ΔΆΣΟς", "ΕΛΠΊς", "ΉΛΙΟς", "ΘΉΚΗ", "ΚΑΦΈς", "ΛΈΞΗ", 
+        "ΜΆΤΙ", "ΝΊΚΗ", "ΞΎΛΟ", "ΠΆΘΟς", "ΡΈΜΑ", "ΣΠΊΤΙ", "ΤΎΠΟς", "ΥΓΕΊΑ", "ΦΑΓΗΤ", "ΧΡΏΜΑ", 
+        "ΨΥΧΉ", "ΏΡΑς", "ΆΝΕΜ", "ΒΌΤΡ", "ΓΆΛΑ", "ΔΕΞΊ", "ΕΘΝΉ", "ΖΆΧΑ", "ΉΘΟς", "ΘΈΜΑ", "ΚΑΡΔ", 
+        "ΛΌΓΟ", "ΜΈΛΙ", "ΝΟΥς", "ΞΈΝΟ", "ΠΛΆΤ", "ΡΎΖΙ", "ΣΉΜΑ", "ΤΕΡΆ", "ΥΠΌΛ", "ΦΟΡΤ", "ΧΡΌΝ", 
+        "ΨΎΧΟ", "ΏΜΟς", "ΑΓΝΈ", "ΒΆΣΙ", "ΓΛΎΚ", "ΔΈΡΜ", "ΕΝΤΕ", "ΖΏΟΝ", "ΉΡΕΜ", "ΘΗΡΊ", "ΚΑΛΌ", 
+        "ΛΟΥΛ", "ΜΕΓΈ", "ΝΈΟς", "ΞΎΛΙ", "ΠΑΡΆ", "ΡΊΓΜ", "ΣΆΒΒ", "ΤΎΧΗ", "ΥΠΑΡ", "ΦΡΈΣ", "ΧΈΡΙ", 
+        "ΨΏΝΙ", "ΏΡΙΜ", "ΆΚΑΚ", "ΒΛΑΒ", "ΓΌΝΑ", "ΔΊΚΟ", "ΕΚΕΊ", "ΖΩΝΤ", "ΘΌΡΥ", "ΚΟΡΜ", "ΛΆΔΙ", 
+        "ΜΎΤΗ", "ΝΕΡΌ", "ΞΎΣΤ", "ΠΆΓΚ", "ΡΕΎΜ", "ΣΚΙΆ", "ΤΑΧΎ", "ΥΓΡΌ", "ΦΎΣΗ", "ΧΏΜΑ", "ΨΆΡΙ", 
+        "ΏΡΑ", "ΑΞΊΑ", "ΒΙΒΛ", "ΓΝΏΣ", "ΔΊΠΛ", "ΕΠΕΙ", "ΖΗΜΙ", "ΘΈΡΜ", "ΚΟΡΎ", "ΛΆΜΠ", "ΜΎΘΙ", 
+        "ΝΟΜΊ", "ΞΑΝΆ", "ΠΕΝΤ", "ΣΑΚΟΎ", "ΤΡΌΦ", "ΥΨΗΛ", "ΦΡΆΣ", "ΧΆΛΚ", "ΨΗΛΌ", "ΏΦΕΛ", "ΆΡΘΡ", 
+        "ΒΡΆΧ", "ΓΝΩΣ", "ΔΊΚΛ", "ΕΡΓΆ", "ΖΉΤΗ", "ΘΆΡΡ", "ΚΛΕΊ", "ΛΆΜΨ", "ΜΟΝΑ", "ΝΟΜΙΚ", "ΞΕΡΉ", 
+        "ΠΈΜΠ", "ΣΟΚΌ", "ΤΡΟΦ", "ΥΓΕΊ", "ΦΏΤΟ", "ΧΆΛΚ", "ΨΗΦΊ", "ΏΡΙΜ", "ΆΘΛ", "ΒΡΑΧ", "ΓΡΉΓ", 
+        "ΔΊΚΟ", "ΕΓΧΡ", "ΖΎΜΗ", "ΘΈΡΜ", "ΚΡΑΣ", "ΛΊΝΚ", "ΜΥΑΛ", "ΝΕΑΡ", "ΞΑΝΆ", "ΠΟΝΌ", "ΡΟΎΦ", 
+        "ΣΟΒΑ", "ΤΎΠΟ", "ΥΛΙΚΟ", "ΦΛΌΓ", "ΧΑΜΗ", "ΨΥΧΡ", "ΏΡΑς"
+      ];
+    }
+
+  
   </script>
 </body>
 </html>
