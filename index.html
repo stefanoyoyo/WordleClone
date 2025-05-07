@@ -1,215 +1,241 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
-  <meta charset="UTF-8" />
-  <title>Wordle Multilingua</title>
-  <style>
-    body {
-      background: #121213;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 40px;
-    }
-    h1 { margin-bottom: 20px; }
-    select {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      padding: 5px;
-      font-size: 16px;
-      background-color: #3a3a3c;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-    .board {
-      display: grid;
-      grid-template-rows: repeat(6, 1fr);
-      gap: 10px;
-      max-width: 300px;
-      margin: auto;
-    }
-    .row {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 5px;
-    }
-    .tile {
-      width: 50px;
-      height: 50px;
-      border: 2px solid #3a3a3c;
-      font-size: 24px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #121213;
-      color: white;
-      text-transform: uppercase;
-    }
-    .correct { background-color: #538d4e; border-color: #538d4e; }
-    .present { background-color: #b59f3b; border-color: #b59f3b; }
-    .absent { background-color: #3a3a3c; border-color: #3a3a3c; }
-    .message { margin-top: 20px; font-size: 18px; }
-  </style>
-</head>
-<body>
-  <h1>Wordle Multilingua</h1>
-  <select id="language-select">
-    <option value="en">Inglese</option>
-    <option value="it">Italiano</option>
-    <option value="el">Greco</option>
-  </select>
-  <div class="board" id="board"></div>
-  <div class="message" id="message"></div>
-
-  <script>
-    const board = document.getElementById('board');
-    const message = document.getElementById('message');
-    const languageSelect = document.getElementById('language-select');
-
-    const maxAttempts = 6;
-    let solution = '';
-    let currentRow = 0;
-    let currentCol = 0;
-    let currentGuess = [];
-
-    const wordSources = {
-      en: async () => {
-        const url = 'https://cheaderthecoder.github.io/5-Letter-words/words.txt';
-        const res = await fetch(url);
-        const text = await res.text();
-        const words = text.split('\n').map(w => w.trim().toUpperCase()).filter(w => w.length === 5);
-        return words[Math.floor(Math.random() * words.length)];
-      },
-      it: async () => {
-        // Lista fittizia italiana
-        const words = ['PESCA', 'AMICO', 'FESTA', 'CUORE', 'LENTO'];
-        return words[Math.floor(Math.random() * words.length)];
-      },
-      el: async () => {
-        // Lista fittizia greca (traslitterata per compatibilità)
-        const words = ['KALOS', 'FILOS', 'ZOEIS', 'MOURO', 'XRISI'];
-        return words[Math.floor(Math.random() * words.length)];
+  <head>
+    <meta charset="UTF-8" />
+    <title>Wordle Multilingua</title>
+    <style>
+      body {
+        background: #121213;
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 40px;
       }
-    };
+      h1 {
+        margin-bottom: 20px;
+      }
+      select {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 5px;
+        font-size: 16px;
+        background-color: #3a3a3c;
+        color: white;
+        border: none;
+        border-radius: 5px;
+      }
+      .board {
+        display: grid;
+        grid-template-rows: repeat(6, 1fr);
+        gap: 10px;
+        max-width: 300px;
+        margin: auto;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 5px;
+      }
+      .tile {
+        width: 50px;
+        height: 50px;
+        border: 2px solid #3a3a3c;
+        font-size: 24px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #121213;
+        color: white;
+        text-transform: uppercase;
+      }
+      .correct {
+        background-color: #538d4e;
+        border-color: #538d4e;
+      }
+      .present {
+        background-color: #b59f3b;
+        border-color: #b59f3b;
+      }
+      .absent {
+        background-color: #3a3a3c;
+        border-color: #3a3a3c;
+      }
+      .message {
+        margin-top: 20px;
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Wordle Multilingua</h1>
+    <select id="language-select">
+      <option value="en">Inglese</option>
+      <option value="it">Italiano</option>
+      <option value="el">Greco</option>
+    </select>
+    <div class="board" id="board"></div>
+    <div class="message" id="message"></div>
+    <!-- Per forzare l'apertura della tastiera su mobile -->
+    <input
+      type="text"
+      id="auto-focus"
+      style="position: absolute; top: -9999px"
+    />
 
-    async function loadNewWord() {
-      const lang = languageSelect.value;
-      solution = await wordSources[lang]();
-      resetBoard();
-      currentRow = 0;
-      currentCol = 0;
-      currentGuess = [];
-      message.textContent = '';
-      console.log("Parola da indovinare:", solution); // Debug
-    }
+    <script>
+      const board = document.getElementById("board");
+      const message = document.getElementById("message");
+      const languageSelect = document.getElementById("language-select");
 
-    function resetBoard() {
-      board.innerHTML = '';
-      for (let i = 0; i < maxAttempts; i++) {
-        const row = document.createElement('div');
-        row.className = 'row';
-        for (let j = 0; j < 5; j++) {
-          const tile = document.createElement('div');
-          tile.className = 'tile';
-          row.appendChild(tile);
+      const maxAttempts = 6;
+      let solution = "";
+      let currentRow = 0;
+      let currentCol = 0;
+      let currentGuess = [];
+
+      const wordSources = {
+        en: async () => {
+          const url =
+            "https://cheaderthecoder.github.io/5-Letter-words/words.txt";
+          const res = await fetch(url);
+          const text = await res.text();
+          const words = text
+            .split("\n")
+            .map((w) => w.trim().toUpperCase())
+            .filter((w) => w.length === 5);
+          return words[Math.floor(Math.random() * words.length)];
+        },
+        it: async () => {
+          // Lista fittizia italiana
+          const words = ["PESCA", "AMICO", "FESTA", "CUORE", "LENTO"];
+          return words[Math.floor(Math.random() * words.length)];
+        },
+        el: async () => {
+          // Lista fittizia greca (traslitterata per compatibilità)
+          const words = ["KALOS", "FILOS", "ZOEIS", "MOURO", "XRISI"];
+          return words[Math.floor(Math.random() * words.length)];
+        },
+      };
+
+      async function loadNewWord() {
+        const lang = languageSelect.value;
+        solution = await wordSources[lang]();
+        resetBoard();
+        currentRow = 0;
+        currentCol = 0;
+        currentGuess = [];
+        message.textContent = "";
+        console.log("Parola da indovinare:", solution); // Debug
+      }
+
+      function resetBoard() {
+        board.innerHTML = "";
+        for (let i = 0; i < maxAttempts; i++) {
+          const row = document.createElement("div");
+          row.className = "row";
+          for (let j = 0; j < 5; j++) {
+            const tile = document.createElement("div");
+            tile.className = "tile";
+            row.appendChild(tile);
+          }
+          board.appendChild(row);
         }
-        board.appendChild(row);
-      }
-    }
-
-    function updateTile(letter) {
-      const row = board.children[currentRow];
-      const tile = row.children[currentCol];
-      tile.textContent = letter;
-    }
-
-    function submitGuess() {
-      const guess = currentGuess.join('');
-      const row = board.children[currentRow];
-      const letterCount = {};
-
-      for (let l of solution) {
-        letterCount[l] = (letterCount[l] || 0) + 1;
       }
 
-      // Prima passata: corretti
-      for (let i = 0; i < 5; i++) {
-        const tile = row.children[i];
-        if (guess[i] === solution[i]) {
-          tile.classList.add('correct');
-          letterCount[guess[i]]--;
+      function updateTile(letter) {
+        const row = board.children[currentRow];
+        const tile = row.children[currentCol];
+        tile.textContent = letter;
+      }
+
+      function submitGuess() {
+        const guess = currentGuess.join("");
+        const row = board.children[currentRow];
+        const letterCount = {};
+
+        for (let l of solution) {
+          letterCount[l] = (letterCount[l] || 0) + 1;
         }
-      }
 
-      // Seconda passata: presenti/assenti
-      for (let i = 0; i < 5; i++) {
-        const tile = row.children[i];
-        if (!tile.classList.contains('correct')) {
-          if (solution.includes(guess[i]) && letterCount[guess[i]] > 0) {
-            tile.classList.add('present');
+        // Prima passata: corretti
+        for (let i = 0; i < 5; i++) {
+          const tile = row.children[i];
+          if (guess[i] === solution[i]) {
+            tile.classList.add("correct");
             letterCount[guess[i]]--;
+          }
+        }
+
+        // Seconda passata: presenti/assenti
+        for (let i = 0; i < 5; i++) {
+          const tile = row.children[i];
+          if (!tile.classList.contains("correct")) {
+            if (solution.includes(guess[i]) && letterCount[guess[i]] > 0) {
+              tile.classList.add("present");
+              letterCount[guess[i]]--;
+            } else {
+              tile.classList.add("absent");
+            }
+          }
+        }
+
+        if (guess === solution) {
+          message.textContent = "🎉 Complimenti! Hai indovinato!";
+          document.removeEventListener("keydown", handleKeyPress);
+        } else if (++currentRow >= maxAttempts) {
+          message.textContent = `❌ Hai perso. La parola era: ${solution}`;
+          document.removeEventListener("keydown", handleKeyPress);
+        } else {
+          currentCol = 0;
+          currentGuess = [];
+          message.textContent = "";
+        }
+      }
+
+      function handleKeyPress(e) {
+        if (currentRow >= maxAttempts) return;
+        const key = e.key.toUpperCase();
+
+        if (key === "BACKSPACE") {
+          if (currentCol > 0) {
+            currentCol--;
+            const row = board.children[currentRow];
+            const tile = row.children[currentCol];
+            tile.textContent = "";
+            currentGuess.pop();
+          }
+        } else if (key === "ENTER") {
+          if (currentGuess.length === 5) {
+            submitGuess();
           } else {
-            tile.classList.add('absent');
+            message.textContent = "Inserisci una parola di 5 lettere.";
+          }
+        } else if (/^[A-ZΑ-Ω]$/.test(key)) {
+          if (currentCol < 5) {
+            const row = board.children[currentRow];
+            const tile = row.children[currentCol];
+            tile.textContent = key;
+            currentGuess.push(key);
+            currentCol++;
           }
         }
       }
 
-      if (guess === solution) {
-        message.textContent = "🎉 Complimenti! Hai indovinato!";
-        document.removeEventListener('keydown', handleKeyPress);
-      } else if (++currentRow >= maxAttempts) {
-        message.textContent = `❌ Hai perso. La parola era: ${solution}`;
-        document.removeEventListener('keydown', handleKeyPress);
-      } else {
-        currentCol = 0;
-        currentGuess = [];
-        message.textContent = '';
-      }
-    }
+      languageSelect.addEventListener("change", async () => {
+        await loadNewWord();
+        document.addEventListener("keydown", handleKeyPress);
+      });
 
-    function handleKeyPress(e) {
-      if (currentRow >= maxAttempts) return;
-      const key = e.key.toUpperCase();
-
-      if (key === 'BACKSPACE') {
-        if (currentCol > 0) {
-          currentCol--;
-          const row = board.children[currentRow];
-          const tile = row.children[currentCol];
-          tile.textContent = '';
-          currentGuess.pop();
-        }
-      } else if (key === 'ENTER') {
-        if (currentGuess.length === 5) {
-          submitGuess();
-        } else {
-          message.textContent = "Inserisci una parola di 5 lettere.";
-        }
-      } else if (/^[A-ZΑ-Ω]$/.test(key)) {
-        if (currentCol < 5) {
-          const row = board.children[currentRow];
-          const tile = row.children[currentCol];
-          tile.textContent = key;
-          currentGuess.push(key);
-          currentCol++;
-        }
-      }
-    }
-
-    languageSelect.addEventListener('change', async () => {
-      await loadNewWord();
-      document.addEventListener('keydown', handleKeyPress);
-    });
-
-    // Inizializzazione al caricamento
-    window.onload = async () => {
-      await loadNewWord();
-      document.addEventListener('keydown', handleKeyPress);
-    };
-  </script>
-</body>
+      // Inizializzazione al caricamento
+      window.onload = async () => {
+        await loadNewWord();
+        document.addEventListener("keydown", handleKeyPress);
+        //Forzo l'apertura della tastiera su mobile
+        document.getElementById("auto-focus").focus();
+      };
+    </script>
+  </body>
 </html>
