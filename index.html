@@ -2,6 +2,7 @@
 <html lang="it">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wordle Multilingua</title>
     <style>
       body {
@@ -32,6 +33,7 @@
         gap: 10px;
         max-width: 300px;
         margin: auto;
+        position: relative;
       }
       .row {
         display: grid;
@@ -67,6 +69,13 @@
         margin-top: 20px;
         font-size: 18px;
       }
+
+      /* Input invisibile ma funzionale */
+      #hidden-input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
@@ -78,17 +87,13 @@
     </select>
     <div class="board" id="board"></div>
     <div class="message" id="message"></div>
-    <!-- Per forzare l'apertura della tastiera su mobile -->
-    <input
-      type="text"
-      id="auto-focus"
-      style="position: absolute; top: -9999px"
-    />
+    <input type="text" id="hidden-input" maxlength="1" autocomplete="off" />
 
     <script>
       const board = document.getElementById("board");
       const message = document.getElementById("message");
       const languageSelect = document.getElementById("language-select");
+      const input = document.getElementById("hidden-input");
 
       const maxAttempts = 6;
       let solution = "";
@@ -98,8 +103,7 @@
 
       const wordSources = {
         en: async () => {
-          const url =
-            "https://cheaderthecoder.github.io/5-Letter-words/words.txt";
+          const url = "https://cheaderthecoder.github.io/5-Letter-words/words.txt";
           const res = await fetch(url);
           const text = await res.text();
           const words = text
@@ -109,12 +113,10 @@
           return words[Math.floor(Math.random() * words.length)];
         },
         it: async () => {
-          // Lista fittizia italiana
           const words = ["PESCA", "AMICO", "FESTA", "CUORE", "LENTO"];
           return words[Math.floor(Math.random() * words.length)];
         },
         el: async () => {
-          // Lista fittizia greca (traslitterata per compatibilità)
           const words = ["KALOS", "FILOS", "ZOEIS", "MOURO", "XRISI"];
           return words[Math.floor(Math.random() * words.length)];
         },
@@ -128,7 +130,8 @@
         currentCol = 0;
         currentGuess = [];
         message.textContent = "";
-        console.log("Parola da indovinare:", solution); // Debug
+        console.log("Parola da indovinare:", solution);
+        focusInput();
       }
 
       function resetBoard() {
@@ -143,6 +146,11 @@
           }
           board.appendChild(row);
         }
+
+        // Aggiungi listener ai tile per mostrare tastiera su tap
+        board.querySelectorAll(".tile").forEach((tile) => {
+          tile.addEventListener("click", focusInput);
+        });
       }
 
       function updateTile(letter) {
@@ -160,7 +168,6 @@
           letterCount[l] = (letterCount[l] || 0) + 1;
         }
 
-        // Prima passata: corretti
         for (let i = 0; i < 5; i++) {
           const tile = row.children[i];
           if (guess[i] === solution[i]) {
@@ -169,7 +176,6 @@
           }
         }
 
-        // Seconda passata: presenti/assenti
         for (let i = 0; i < 5; i++) {
           const tile = row.children[i];
           if (!tile.classList.contains("correct")) {
@@ -184,22 +190,36 @@
 
         if (guess === solution) {
           message.textContent = "🎉 Complimenti! Hai indovinato!";
-          document.removeEventListener("keydown", handleKeyPress);
+          input.blur();
         } else if (++currentRow >= maxAttempts) {
           message.textContent = `❌ Hai perso. La parola era: ${solution}`;
-          document.removeEventListener("keydown", handleKeyPress);
+          input.blur();
         } else {
           currentCol = 0;
           currentGuess = [];
-          message.textContent = "";
         }
       }
 
-      function handleKeyPress(e) {
-        if (currentRow >= maxAttempts) return;
-        const key = e.key.toUpperCase();
+      input.addEventListener("input", (e) => {
+        const key = e.target.value.toUpperCase();
+        e.target.value = ""; // reset per la prossima lettera
+        if (!/^[A-ZΑ-Ω]$/.test(key)) return;
 
-        if (key === "BACKSPACE") {
+        if (currentCol < 5) {
+          const row = board.children[currentRow];
+          const tile = row.children[currentCol];
+          tile.textContent = key;
+          currentGuess.push(key);
+          currentCol++;
+        }
+
+        if (currentCol === 5) {
+          submitGuess();
+        }
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace") {
           if (currentCol > 0) {
             currentCol--;
             const row = board.children[currentRow];
@@ -207,34 +227,20 @@
             tile.textContent = "";
             currentGuess.pop();
           }
-        } else if (key === "ENTER") {
-          if (currentGuess.length === 5) {
-            submitGuess();
-          } else {
-            message.textContent = "Inserisci una parola di 5 lettere.";
-          }
-        } else if (/^[A-ZΑ-Ω]$/.test(key)) {
-          if (currentCol < 5) {
-            const row = board.children[currentRow];
-            const tile = row.children[currentCol];
-            tile.textContent = key;
-            currentGuess.push(key);
-            currentCol++;
-          }
         }
-      }
+      });
 
       languageSelect.addEventListener("change", async () => {
         await loadNewWord();
-        document.addEventListener("keydown", handleKeyPress);
       });
 
-      // Inizializzazione al caricamento
+      function focusInput() {
+        input.focus();
+      }
+
       window.onload = async () => {
         await loadNewWord();
-        document.addEventListener("keydown", handleKeyPress);
-        //Forzo l'apertura della tastiera su mobile
-        document.getElementById("auto-focus").focus();
+        focusInput();
       };
     </script>
   </body>
