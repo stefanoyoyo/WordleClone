@@ -1,247 +1,281 @@
 <!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wordle Multilingua</title>
-    <style>
-      body {
-        background: #121213;
-        color: white;
-        font-family: Arial, sans-serif;
-        text-align: center;
-        margin: 0;
-        padding: 40px;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wordle Multilingua</title>
+  <style>
+    body {
+      background: #121213;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 40px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    select {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 5px;
+      font-size: 16px;
+      background-color: #3a3a3c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    .board {
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      gap: 10px;
+      max-width: 300px;
+      margin: auto;
+      position: relative;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+    }
+    .tile {
+      width: 50px;
+      height: 50px;
+      border: 2px solid #3a3a3c;
+      font-size: 24px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #121213;
+      color: white;
+      text-transform: uppercase;
+    }
+    .correct {
+      background-color: #538d4e;
+      border-color: #538d4e;
+    }
+    .present {
+      background-color: #b59f3b;
+      border-color: #b59f3b;
+    }
+    .absent {
+      background-color: #3a3a3c;
+      border-color: #3a3a3c;
+    }
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    #hidden-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Wordle Multilingua</h1>
+  <select id="language-select">
+    <option value="en" selected>Inglese</option>
+    <option value="it">Italiano</option>
+    <option value="el">Greco</option>
+  </select>
+  <div class="board" id="board"></div>
+  <div class="message" id="message"></div>
+  <input type="text" id="hidden-input" maxlength="1" autocomplete="off" />
+
+  <script>
+    const board = document.getElementById("board");
+    const message = document.getElementById("message");
+    const languageSelect = document.getElementById("language-select");
+    const input = document.getElementById("hidden-input");
+
+    const maxAttempts = 6;
+    let solution = "";
+    let currentRow = 0;
+    let currentCol = 0;
+    let currentGuess = [];
+    let allowedWords = [];
+    let invalidWord = false;
+
+    const translations = {
+      it: {
+        win: "🎉 Complimenti! Hai indovinato!",
+        lose: (solution) => `❌ Hai perso. La parola era: ${solution}`,
+        notFound: "❌ Parola non presente nel dizionario italiano."
+      },
+      en: {
+        win: "🎉 Congratulations! You guessed it!",
+        lose: (solution) => `❌ You lost. The word was: ${solution}`,
+        notFound: "❌ Word not in English dictionary."
+      },
+      el: {
+        win: "🎉 Συγχαρητήρια! Το βρήκες!",
+        lose: (solution) => `❌ Έχασες. Η λέξη ήταν: ${solution}`,
+        notFound: "❌ Η λέξη δεν υπάρχει στο ελληνικό λεξικό."
       }
-      h1 {
-        margin-bottom: 20px;
+    };
+
+    const wordLists = {
+      en: async () => {
+        const url = "https://cheaderthecoder.github.io/5-Letter-words/words.txt";
+        const res = await fetch(url);
+        const text = await res.text();
+        const words = text.split("\n").map(w => w.trim().toUpperCase()).filter(w => w.length === 5);
+        allowedWords = words;
+        return words[Math.floor(Math.random() * words.length)];
+      },
+      it: async () => {
+        const words = ["PESCA", "AMICO", "FESTA", "CUORE", "LENTO"];
+        allowedWords = words;
+        return words[Math.floor(Math.random() * words.length)];
+      },
+      el: async () => {
+        const words = ["KALOS", "FILOS", "ZOEIS", "MOURO", "XRISI"];
+        allowedWords = words;
+        return words[Math.floor(Math.random() * words.length)];
       }
-      select {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        padding: 5px;
-        font-size: 16px;
-        background-color: #3a3a3c;
-        color: white;
-        border: none;
-        border-radius: 5px;
-      }
-      .board {
-        display: grid;
-        grid-template-rows: repeat(6, 1fr);
-        gap: 10px;
-        max-width: 300px;
-        margin: auto;
-        position: relative;
-      }
-      .row {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 5px;
-      }
-      .tile {
-        width: 50px;
-        height: 50px;
-        border: 2px solid #3a3a3c;
-        font-size: 24px;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #121213;
-        color: white;
-        text-transform: uppercase;
-      }
-      .correct {
-        background-color: #538d4e;
-        border-color: #538d4e;
-      }
-      .present {
-        background-color: #b59f3b;
-        border-color: #b59f3b;
-      }
-      .absent {
-        background-color: #3a3a3c;
-        border-color: #3a3a3c;
-      }
-      .message {
-        margin-top: 20px;
-        font-size: 18px;
+    };
+
+    async function loadNewWord() {
+      const lang = languageSelect.value;
+      solution = await wordLists[lang]();
+      resetBoard();
+      currentRow = 0;
+      currentCol = 0;
+      currentGuess = [];
+      message.textContent = "";
+      focusInput();
+    }
+
+    function resetBoard() {
+      board.innerHTML = "";
+      for (let i = 0; i < maxAttempts; i++) {
+        const row = document.createElement("div");
+        row.className = "row";
+        for (let j = 0; j < 5; j++) {
+          const tile = document.createElement("div");
+          tile.className = "tile";
+          row.appendChild(tile);
+        }
+        board.appendChild(row);
       }
 
-      /* Input invisibile ma funzionale */
-      #hidden-input {
-        position: absolute;
-        opacity: 0;
-        pointer-events: none;
+      board.querySelectorAll(".tile").forEach((tile) => {
+        tile.addEventListener("click", focusInput);
+      });
+    }
+
+    function clearCurrentRow() {
+      const row = board.children[currentRow];
+      for (let i = 0; i < 5; i++) {
+        const tile = row.children[i];
+        tile.textContent = "";
       }
-    </style>
-  </head>
-  <body>
-    <h1>Wordle Multilingua</h1>
-    <select id="language-select">
-      <option value="en">Inglese</option>
-      <option value="it">Italiano</option>
-      <option value="el">Greco</option>
-    </select>
-    <div class="board" id="board"></div>
-    <div class="message" id="message"></div>
-    <input type="text" id="hidden-input" maxlength="1" autocomplete="off" />
+      currentGuess = [];
+      currentCol = 0;
+    }
 
-    <script>
-      const board = document.getElementById("board");
-      const message = document.getElementById("message");
-      const languageSelect = document.getElementById("language-select");
-      const input = document.getElementById("hidden-input");
+    function submitGuess() {
+      const guess = currentGuess.join("");
+      const lang = languageSelect.value;
 
-      const maxAttempts = 6;
-      let solution = "";
-      let currentRow = 0;
-      let currentCol = 0;
-      let currentGuess = [];
+      if (!allowedWords.includes(guess)) {
+        message.textContent = translations[lang].notFound;
+        invalidWord = true;
+        return;
+      }
 
-      const wordSources = {
-        en: async () => {
-          const url = "https://cheaderthecoder.github.io/5-Letter-words/words.txt";
-          const res = await fetch(url);
-          const text = await res.text();
-          const words = text
-            .split("\n")
-            .map((w) => w.trim().toUpperCase())
-            .filter((w) => w.length === 5);
-          return words[Math.floor(Math.random() * words.length)];
-        },
-        it: async () => {
-          const words = ["PESCA", "AMICO", "FESTA", "CUORE", "LENTO"];
-          return words[Math.floor(Math.random() * words.length)];
-        },
-        el: async () => {
-          const words = ["KALOS", "FILOS", "ZOEIS", "MOURO", "XRISI"];
-          return words[Math.floor(Math.random() * words.length)];
-        },
-      };
+      const row = board.children[currentRow];
+      const letterCount = {};
+      for (let l of solution) {
+        letterCount[l] = (letterCount[l] || 0) + 1;
+      }
 
-      async function loadNewWord() {
-        const lang = languageSelect.value;
-        solution = await wordSources[lang]();
-        resetBoard();
-        currentRow = 0;
+      for (let i = 0; i < 5; i++) {
+        const tile = row.children[i];
+        if (guess[i] === solution[i]) {
+          tile.classList.add("correct");
+          letterCount[guess[i]]--;
+        }
+      }
+
+      for (let i = 0; i < 5; i++) {
+        const tile = row.children[i];
+        if (!tile.classList.contains("correct")) {
+          if (solution.includes(guess[i]) && letterCount[guess[i]] > 0) {
+            tile.classList.add("present");
+            letterCount[guess[i]]--;
+          } else {
+            tile.classList.add("absent");
+          }
+        }
+      }
+
+      if (guess === solution) {
+        message.textContent = translations[lang].win;
+        input.blur();
+      } else if (++currentRow >= maxAttempts) {
+        message.textContent = translations[lang].lose(solution);
+        input.blur();
+      } else {
         currentCol = 0;
         currentGuess = [];
+      }
+    }
+
+    input.addEventListener("input", (e) => {
+      const key = e.target.value.toUpperCase();
+      e.target.value = "";
+
+      if (!/^[A-ZΑ-Ω]$/.test(key)) return;
+
+      if (invalidWord) {
+        clearCurrentRow();
         message.textContent = "";
-        console.log("Parola da indovinare:", solution);
-        focusInput();
+        invalidWord = false;
       }
 
-      function resetBoard() {
-        board.innerHTML = "";
-        for (let i = 0; i < maxAttempts; i++) {
-          const row = document.createElement("div");
-          row.className = "row";
-          for (let j = 0; j < 5; j++) {
-            const tile = document.createElement("div");
-            tile.className = "tile";
-            row.appendChild(tile);
-          }
-          board.appendChild(row);
-        }
-
-        // Aggiungi listener ai tile per mostrare tastiera su tap
-        board.querySelectorAll(".tile").forEach((tile) => {
-          tile.addEventListener("click", focusInput);
-        });
-      }
-
-      function updateTile(letter) {
+      if (currentCol < 5) {
         const row = board.children[currentRow];
         const tile = row.children[currentCol];
-        tile.textContent = letter;
+        tile.textContent = key;
+        currentGuess.push(key);
+        currentCol++;
       }
 
-      function submitGuess() {
-        const guess = currentGuess.join("");
-        const row = board.children[currentRow];
-        const letterCount = {};
-
-        for (let l of solution) {
-          letterCount[l] = (letterCount[l] || 0) + 1;
-        }
-
-        for (let i = 0; i < 5; i++) {
-          const tile = row.children[i];
-          if (guess[i] === solution[i]) {
-            tile.classList.add("correct");
-            letterCount[guess[i]]--;
-          }
-        }
-
-        for (let i = 0; i < 5; i++) {
-          const tile = row.children[i];
-          if (!tile.classList.contains("correct")) {
-            if (solution.includes(guess[i]) && letterCount[guess[i]] > 0) {
-              tile.classList.add("present");
-              letterCount[guess[i]]--;
-            } else {
-              tile.classList.add("absent");
-            }
-          }
-        }
-
-        if (guess === solution) {
-          message.textContent = "🎉 Complimenti! Hai indovinato!";
-          input.blur();
-        } else if (++currentRow >= maxAttempts) {
-          message.textContent = `❌ Hai perso. La parola era: ${solution}`;
-          input.blur();
-        } else {
-          currentCol = 0;
-          currentGuess = [];
-        }
+      if (currentCol === 5) {
+        submitGuess();
       }
+    });
 
-      input.addEventListener("input", (e) => {
-        const key = e.target.value.toUpperCase();
-        e.target.value = ""; // reset per la prossima lettera
-        if (!/^[A-ZΑ-Ω]$/.test(key)) return;
-
-        if (currentCol < 5) {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace") {
+        if (currentCol > 0) {
+          currentCol--;
           const row = board.children[currentRow];
           const tile = row.children[currentCol];
-          tile.textContent = key;
-          currentGuess.push(key);
-          currentCol++;
+          tile.textContent = "";
+          currentGuess.pop();
         }
-
-        if (currentCol === 5) {
-          submitGuess();
-        }
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Backspace") {
-          if (currentCol > 0) {
-            currentCol--;
-            const row = board.children[currentRow];
-            const tile = row.children[currentCol];
-            tile.textContent = "";
-            currentGuess.pop();
-          }
-        }
-      });
-
-      languageSelect.addEventListener("change", async () => {
-        await loadNewWord();
-      });
-
-      function focusInput() {
-        input.focus();
       }
+    });
 
-      window.onload = async () => {
-        await loadNewWord();
-        focusInput();
-      };
-    </script>
-  </body>
+    languageSelect.addEventListener("change", async () => {
+      await loadNewWord();
+    });
+
+    function focusInput() {
+      input.focus();
+    }
+
+    window.onload = async () => {
+      await loadNewWord();
+      focusInput();
+    };
+  </script>
+</body>
 </html>
